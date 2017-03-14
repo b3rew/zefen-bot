@@ -1,52 +1,53 @@
 ﻿const request = require('request');
 const config = require('./config');
 
+const getSongListResponse = (songs) => songs.slice(0, config.SEARCH_LIMIT)
+    .map((song, index) => `🎼 <b>${index + 1}</b> ${song.songName} (${song.artistName}) - /play${song.songId}`).join('\n');
 
-var getSongListResponse = (songs) => {
-    var songString = ''
-    for (var k = 0, len = songs.length; k < len && k < config.searchLimit; k++) {
-        songString += `🎼 <b>${k + 1}</b> ${songs[k].songName} (${songs[k].artistName}) - /play${songs[k].songId}\n`;
+const getSongList = (url) => new Promise((resolve, reject) => {
+    if (!url || url === '') {
+        reject('empty url');
+        return;
     }
-    return "🎼 <b>Results</b>\n" + songString;
-}
-
-var getSongList = (url, done) => {
-    // console.log("request --", url)
-    if (!url || url == '') return done('');
     request.post(url, (error, response, body) => {
-        //TODO: Please check the respose bedenb
         if (error) {
-            console.log("Error", error);
-            return done('');
+            reject(error);
+            return;
         }
-        if (body && JSON.parse(body)) {
-            var list = JSON.parse(body);
-            return done(getSongListResponse(list.songs));
+        try {
+            resolve(JSON.parse(body));
+        } catch (e) {
+            reject(e);
         }
-    })
-}
+    });
+});
 
-var getSongs = (type, keyword, done) => {
-    var url = '';
+const getSongs = (type, keyword) => new Promise((resolve, reject) => {
+    let url = '';
     switch (type) {
         case 'search':
-            url = config.url.search + keyword;
+            url = config.URL.search + keyword;
             break;
         case 'recent':
-            url = config.url.recent;
+            url = config.URL.recent;
             break;
         case 'popular':
-            url = config.url.popular;
+            url = config.URL.popular;
             break;
         case 'random':
-            url = config.url.random;
+            url = config.URL.random;
             break;
         case 'traditional':
-            url = config.url.traditional;
+            url = config.URL.traditional;
             break;
     }
-    return getSongList(url, done)
-};
+    getSongList(url).then(function (response) {
+        resolve(`<b>Results</b>\n` + getSongListResponse(response.songs));
+    }).catch(function (e) {
+        console.log(e);
+        resolve(`<b>0 Results Found</b>`);
+    })
+});
 module.exports = {
     getSongs: getSongs
 }
