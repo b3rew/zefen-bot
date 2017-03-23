@@ -14,6 +14,7 @@
   "author": "berew",
   "license": "MIT",
   "dependencies": {
+    "nedb": "^1.8.0",
     "node-telegram-bot-api": "^0.27.0",
     "request": "^2.79.0"
   }
