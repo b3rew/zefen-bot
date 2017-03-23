@@ -1,14 +1,13 @@
 /*
-    >> First I just want to say, I'm sorry www.arifzefen.com :( I never meant to hurt you --Eminem
     >> You need to know that the ownership of cyberspace will always remain with the hivemind --Jake “Topiary” Davis
-    >> Also please don't update/change your api
-    >> To the Police, I don't host or copy any music so please don't arrest me ;) 
+    >> I don't host or copy any music ;) 
 */
 
 const TOKEN = 'TELEGRAM_TOEKEN_HERE';
 
 const TelegramBot = require('node-telegram-bot-api');
 const musicApi = require('./api-parser');
+const db = require('./db-parser');
 const config = require('./config');
 
 const options = {
@@ -24,7 +23,7 @@ bot.onText(/\/search (.+)/, function onSearchText(msg, match) {
     parse_mode: 'HTML',
   }
   bot.sendChatAction(msg.chat.id, 'typing');
-  musicApi.getSongs('search', keyword).then((songs) => {
+  musicApi.getSongs(msg.chat, 'search', keyword).then((songs) => {
     bot.sendMessage(msg.chat.id, songs, opts);
   })
 });
@@ -33,7 +32,7 @@ bot.onText(/\/search (.+)/, function onSearchText(msg, match) {
 bot.onText(/\/recent/, function onRecent(msg) {
   const opts = { parse_mode: 'HTML' }
   bot.sendChatAction(msg.chat.id, 'typing');
-  musicApi.getSongs('recent').then((songs) => {
+  musicApi.getSongs(msg.chat, 'recent').then((songs) => {
     bot.sendMessage(msg.chat.id, songs, opts);
   })
 });
@@ -42,7 +41,7 @@ bot.onText(/\/recent/, function onRecent(msg) {
 bot.onText(/\/popular/, function onPopular(msg) {
   const opts = { parse_mode: 'HTML' }
   bot.sendChatAction(msg.chat.id, 'typing');
-  musicApi.getSongs('popular').then((songs) => {
+  musicApi.getSongs(msg.chat, 'popular').then((songs) => {
     bot.sendMessage(msg.chat.id, songs, opts);
   })
 });
@@ -51,7 +50,7 @@ bot.onText(/\/popular/, function onPopular(msg) {
 bot.onText(/\/traditional/, function onTraditional(msg) {
   const opts = { parse_mode: 'HTML' }
   bot.sendChatAction(msg.chat.id, 'typing');
-  musicApi.getSongs('traditional').then((songs) => {
+  musicApi.getSongs(msg.chat, 'traditional').then((songs) => {
     bot.sendMessage(msg.chat.id, songs, opts);
   })
 });
@@ -60,17 +59,18 @@ bot.onText(/\/traditional/, function onTraditional(msg) {
 bot.onText(/\/random/, function onTraditional(msg) {
   const opts = { parse_mode: 'HTML' }
   bot.sendChatAction(msg.chat.id, 'typing');
-  musicApi.getSongs('random').then((songs) => {
+  musicApi.getSongs(msg.chat, 'random').then((songs) => {
     bot.sendMessage(msg.chat.id, songs, opts);
   })
 });
 
 // Matches /send play(and music id)
 bot.onText(/\/play(.+)/, function onPlay(msg, match) {
-  const resp = match[1];
+  const resp = match[1];//music id
   const url = config.URL.playSong + resp;
-  // console.log("url", url);
   bot.sendChatAction(msg.chat.id, 'upload_audio');
   //TODO: check url response before sending it, but now it is sending playSong.php.mp3 if the music is not found
-  bot.sendAudio(msg.chat.id, url);
+  db.updateUserPlayData(msg.chat, resp, url).then(function(status){
+     bot.sendAudio(msg.chat.id, url);
+  }); 
 });
