@@ -2,7 +2,7 @@
 
 //initalize db collection
 const init = function (collection) {
-    var db = new Datastore({ filename: 'db/' + collection + '.db', autoload: true });
+    const db = new Datastore({ filename: 'db/' + collection + '.db', autoload: true });
     return db;
 }
 //save unique users
@@ -27,7 +27,7 @@ const updateUserSearchData = (user, action, keyword) => new Promise((resolve, re
         }, {}, function () {
             resolve({ status: true });
         });
-    }).catch(function(err){
+    }).catch(function (err) {
         console.log(err);
         resolve();
     });
@@ -40,17 +40,27 @@ const updateUserPlayData = (user, musicId, url) => new Promise((resolve, reject)
         }, {}, function () {
             resolve({ status: true });
         });
-    }).catch(function(err){
+    }).catch(function (err) {
         console.log(err);
         resolve();
     });
-    
+
 });
 //show list of saved users
 const showDb = function () {
     const userDb = init('users');
     userDb.find({}, function (err, docs) {
-        console.log(docs)
+        let users = [];
+        if (docs) {
+            for(let i=0,l=docs.length;i<l;i++){
+                users[users.length] = {
+                   data:  docs[i],
+                   search_length: docs[i].searches ? docs[i].searches.length : 0,
+                   play_length: docs[i].plays ? docs[i].plays.length : 0
+                };
+            }
+        }
+        console.log(users)
     });
 }
 

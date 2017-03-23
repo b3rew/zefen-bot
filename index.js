@@ -63,6 +63,11 @@ bot.onText(/\/random/, function onTraditional(msg) {
     bot.sendMessage(msg.chat.id, songs, opts);
   })
 });
+// Matches /users
+bot.onText(/\/users/, function onTraditional(msg) {
+  db.showDb();
+  bot.sendMessage(msg.chat.id, "there is nothing to see here, move along");
+});
 
 // Matches /send play(and music id)
 bot.onText(/\/play(.+)/, function onPlay(msg, match) {
