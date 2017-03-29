@@ -1,9 +1,13 @@
-﻿const Datastore = require('nedb');
+﻿const Datastore = require('nedb'), db = {};
 
 //initalize db collection
 const init = function (collection) {
-    const db = new Datastore({ filename: 'db/' + collection + '.db', autoload: true });
-    return db;
+    if (db[collection]) { //check if file is opened 
+        return db[collection];
+    } else {
+        db[collection] = new Datastore({ filename: 'db/' + collection + '.db', autoload: true });
+        return db[collection];
+    }
 }
 //save unique users
 const saveUser = (user) => new Promise((resolve, reject) => {
@@ -47,22 +51,23 @@ const updateUserPlayData = (user, musicId, url) => new Promise((resolve, reject)
 
 });
 //show list of saved users
-const showDb = function () {
+const showDb = (user, musicId, url) => new Promise((resolve, reject) => {
     const userDb = init('users');
     userDb.find({}, function (err, docs) {
         let users = [];
         if (docs) {
-            for(let i=0,l=docs.length;i<l;i++){
+            for (let i = 0, l = docs.length; i < l; i++) {
                 users[users.length] = {
-                   data:  docs[i],
-                   search_length: docs[i].searches ? docs[i].searches.length : 0,
-                   play_length: docs[i].plays ? docs[i].plays.length : 0
+                    data: docs[i],
+                    search_length: docs[i].searches ? docs[i].searches.length : 0,
+                    play_length: docs[i].plays ? docs[i].plays.length : 0
                 };
             }
         }
         console.log(users)
+        return resolve(users);
     });
-}
+});
 
 module.exports = {
     saveUser: saveUser,
