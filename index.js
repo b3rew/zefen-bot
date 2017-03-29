@@ -13,7 +13,7 @@ const config = require('./config');
 const options = {
   polling: true
 };
-const adminUserIds = [];
+const adminUserIds = []
 
 const bot = new TelegramBot(TOKEN, options);
 
@@ -43,6 +43,10 @@ bot.on('message', function (message) {
     command = 'notify';
     keyword = capture;
   });
+  message.text.replace(/\/testnotify (.+)/, function (match, capture) {
+    command = 'testnotify';
+    keyword = capture;
+  });
   message.text.replace(/\/users/, function (match, capture) {
     command = 'users';
   });
@@ -68,6 +72,9 @@ bot.on('message', function (message) {
       break;
     case 'notify':
       onNotify(message, keyword);
+      break;
+    case 'testnotify':
+      onNotifyTest(message, keyword);
       break;
     case 'users':
       onUsers(message);
@@ -141,6 +148,20 @@ function onUsers(msg) {
     db.showDb().then(function (users) {
       bot.sendMessage(msg.chat.id, "Total Users " + users.length);
     });
+  }
+};
+
+// Matches /testnotify
+function onNotifyTest(msg, match) {
+  let message = '';
+  if (adminUserIds.indexOf(msg.chat.id) != -1) {
+    message = match;
+    let i = adminUserIds.length;
+    let sendingInterval = setInterval(function () {
+      i--;
+      if (i < 0) clearInterval(sendingInterval);
+      else bot.sendMessage(parseInt(adminUserIds[i]), 'Hi Admin' + ', ' + message);
+    }, 1000)
   }
 };
 
